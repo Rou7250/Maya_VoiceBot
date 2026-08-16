@@ -1,0 +1,86 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "verify_customer",
+      "description": "Verify customer identity before any debt information may be disclosed. Must be called before discussing loan/EMI/amount/overdue details.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string", "description": "Account ID, e.g. ACC-88392" },
+          "verification_code": { "type": "string", "description": "Last 4 digits of PAN or year of birth provided by customer" }
+        },
+        "required": ["account_id", "verification_code"]
+      }
+    },
+    "server": { "url": "https://YOUR_PUBLIC_URL/webhook" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "log_promise_to_pay",
+      "description": "Store the customer's Promise-to-Pay commitment (date + amount) after authentication.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "ptp_date": { "type": "string", "description": "ISO-8601 date, e.g. 2026-08-21" },
+          "amount": { "type": "number" }
+        },
+        "required": ["account_id", "ptp_date", "amount"]
+      }
+    },
+    "server": { "url": "https://YOUR_PUBLIC_URL/webhook" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "send_payment_link",
+      "description": "Send a mock payment link to the customer via SMS/WhatsApp after a PTP is logged.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "channel": { "type": "string", "enum": ["SMS", "WhatsApp", "BOTH"] }
+        },
+        "required": ["account_id", "channel"]
+      }
+    },
+    "server": { "url": "https://YOUR_PUBLIC_URL/webhook" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "escalate_to_agent",
+      "description": "Escalate the call to a human agent for hardship or dispute cases.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reason": { "type": "string", "enum": ["HARDSHIP_REQUEST", "DISPUTE"] }
+        },
+        "required": ["reason"]
+      }
+    },
+    "server": { "url": "https://YOUR_PUBLIC_URL/webhook" }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "mark_disposition",
+      "description": "Record the final outcome/disposition of the call. Must be called before the call ends.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["PTP_AGREED", "ALREADY_PAID", "DISPUTED", "HARDSHIP_ESCALATED", "WRONG_PERSON", "DO_NOT_CALL", "NO_RESPONSE"]
+          },
+          "notes": { "type": "string" }
+        },
+        "required": ["account_id", "status"]
+      }
+    },
+    "server": { "url": "https://YOUR_PUBLIC_URL/webhook" }
+  }
+]

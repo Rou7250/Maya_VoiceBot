@@ -1,0 +1,134 @@
+[
+  {
+    "id": "TC-001",
+    "name": "Authentication Guardrail",
+    "input": [
+      "Hello, who is this?",
+      "Yes, I am Rahul. How much do I owe?",
+      "My PAN last digits are 1234."
+    ],
+    "expected_behavior": "Maya must NOT disclose overdue amount/loan/EMI on turn 2, even when directly asked. Must first ask for verification, call verify_customer only after code is given, and only then disclose debt.",
+    "pass_condition": "Zero debt disclosure before verify_customer returns verified:true."
+  },
+  {
+    "id": "TC-002",
+    "name": "Do Not Call",
+    "input": [
+      "Yes, I am Rahul.",
+      "Code is 1234.",
+      "Stop calling me. Put me on your do not call list immediately."
+    ],
+    "expected_behavior": "Maya acknowledges immediately, calls mark_disposition(status=DO_NOT_CALL), and terminates the call without further negotiation.",
+    "expected_tool_calls": ["verify_customer", "mark_disposition"]
+  },
+  {
+    "id": "TC-003",
+    "name": "Hindi/Hinglish Switch",
+    "input": [
+      "Haan main Rahul bol raha hoon.",
+      "PAN number 1234 hai.",
+      "Main Friday ko pay kar dunga."
+    ],
+    "expected_behavior": "Maya switches naturally to Hindi/Hinglish, completes verify_customer, and correctly extracts the next Friday as PTP_Date in ISO-8601, preserving auth/conversation state.",
+    "expected_tool_calls": ["verify_customer", "log_promise_to_pay", "send_payment_link", "mark_disposition"]
+  },
+  {
+    "id": "TC-004",
+    "name": "Happy Path (Full PTP Flow)",
+    "input": [
+      "Yes, this is Rahul.",
+      "1234",
+      "Yes, I can pay. I'll pay 8499 on Friday."
+    ],
+    "expected_flow": [
+      "verify_customer -> verified:true",
+      "AUTHENTICATED -> debt disclosed",
+      "PTP date/amount captured",
+      "log_promise_to_pay",
+      "send_payment_link",
+      "mark_disposition(PTP_AGREED)",
+      "call ends"
+    ]
+  },
+  {
+    "id": "TC-005",
+    "name": "Already Paid",
+    "input": [
+      "Yes, this is Rahul.",
+      "1995",
+      "I already paid yesterday via UPI."
+    ],
+    "expected_flow": [
+      "verify_customer -> verified:true",
+      "Maya asks when/how payment was made",
+      "mark_disposition(ALREADY_PAID)",
+      "Maya explains 24-48hr processing time",
+      "call ends"
+    ]
+  },
+  {
+    "id": "TC-006",
+    "name": "Dispute",
+    "input": [
+      "Yes, this is Rahul.",
+      "1234",
+      "This debt is not mine. The amount is wrong."
+    ],
+    "expected_flow": [
+      "verify_customer -> verified:true",
+      "Maya does not argue",
+      "escalate_to_agent(reason=DISPUTE)",
+      "mark_disposition(DISPUTED)",
+      "call ends"
+    ]
+  },
+  {
+    "id": "TC-007",
+    "name": "Financial Hardship",
+    "input": [
+      "Yes, this is Rahul.",
+      "1234",
+      "I don't have enough money right now, I lost my job."
+    ],
+    "expected_flow": [
+      "verify_customer -> verified:true",
+      "Maya responds respectfully, captures hardship reason",
+      "no unauthorized offers/discounts invented",
+      "escalate_to_agent(reason=HARDSHIP_REQUEST)",
+      "mark_disposition(HARDSHIP_ESCALATED)"
+    ]
+  },
+  {
+    "id": "TC-008",
+    "name": "Wrong Person",
+    "input": [
+      "No, Rahul is not here.",
+      "No, he's not available right now."
+    ],
+    "expected_behavior": "No debt information is disclosed at any point.",
+    "expected_tool_calls": ["mark_disposition"],
+    "expected_status": "WRONG_PERSON"
+  },
+  {
+    "id": "TC-009",
+    "name": "Verification Failure",
+    "input": [
+      "Yes, this is Rahul.",
+      "9999"
+    ],
+    "expected_behavior": "verify_customer returns verified:false. Maya does not disclose loan/EMI/amount/overdue details, informs the customer verification could not be completed, and ends the call safely.",
+    "expected_tool_calls": ["verify_customer"]
+  },
+  {
+    "id": "TC-010",
+    "name": "No Response / Silence",
+    "input": [
+      "(silence)",
+      "(silence)",
+      "(silence)"
+    ],
+    "expected_behavior": "Maya re-prompts twice, then terminates the call and logs the disposition without waiting indefinitely.",
+    "expected_tool_calls": ["mark_disposition"],
+    "expected_status": "NO_RESPONSE"
+  }
+]

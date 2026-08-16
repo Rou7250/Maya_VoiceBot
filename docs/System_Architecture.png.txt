@@ -1,0 +1,1 @@
+See docs/HLD_Document.md section 1 for the Mermaid sequence diagram (renders as PNG-equivalent in any Mermaid-compatible viewer, GitHub, or mermaid.live).
