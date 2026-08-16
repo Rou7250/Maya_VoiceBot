@@ -174,10 +174,18 @@ app.post('/webhook', (req, res) => {
       }
     }
 
-    const toolCalls =
-      req.body?.message?.toolCalls ||
-      req.body?.toolCalls ||
-      (req.body?.message?.toolCallList ?? []);
+    let toolCalls = [];
+    if (req.body?.message?.toolCalls) {
+      toolCalls = req.body.message.toolCalls;
+    } else if (req.body?.message?.toolCall) {
+      toolCalls = [req.body.message.toolCall];
+    } else if (req.body?.toolCalls) {
+      toolCalls = req.body.toolCalls;
+    } else if (req.body?.toolCall) {
+      toolCalls = [req.body.toolCall];
+    } else if (req.body?.message?.toolCallList) {
+      toolCalls = req.body.message.toolCallList;
+    }
 
     // Fallback response for other Vapi event notifications (e.g., status-update, transcript, etc.)
     if (!Array.isArray(toolCalls) || toolCalls.length === 0) {
