@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: maya-voicebot-mock-server
+    env: node
+    plan: free
+    rootDir: mock-server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DEMO_ACCOUNT_ID
+        value: ACC-88392
+      - key: DEMO_CUSTOMER_NAME
+        value: Rahul Sharma
+      - key: DEMO_LOAN_TYPE
+        value: Personal Loan
+      - key: DEMO_OVERDUE_AMOUNT
+        value: "8499"
+      - key: DEMO_DAYS_PAST_DUE
+        value: "12"
+      - key: MOCK_VALID_CODES
+        value: 1234,1995
+      - key: VAPI_WEBHOOK_SECRET
+        sync: false
