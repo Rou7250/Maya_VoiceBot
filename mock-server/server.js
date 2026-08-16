@@ -71,9 +71,16 @@ function verify_customer(args) {
   const account_id = args.account_id || args.accountId || args['Account Id'] || args['account id'] || '';
   const verification_code = args.verification_code || args.verificationCode || args['Verification Code'] || args['verification code'] || args.code || '';
   
-  // Strip any trailing punctuation or non-digits (e.g., "1234." -> "1234")
-  const cleanedCode = String(verification_code).replace(/[^0-9]/g, '').trim();
-  const verified = VALID_CODES.includes(cleanedCode);
+  let cleaned = String(verification_code).toLowerCase();
+  const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+  words.forEach((word, index) => {
+    const regex = new RegExp(`\\b${word}\\b`, 'g');
+    cleaned = cleaned.replace(regex, index);
+  });
+
+  const cleanedDigits = cleaned.replace(/[^0-9]/g, '');
+  const verified = VALID_CODES.some((code) => cleanedDigits.endsWith(code));
+
   return verified
     ? { verified: true, message: 'Identity verified successfully.' }
     : { verified: false, message: 'Verification failed. Incorrect code.' };
