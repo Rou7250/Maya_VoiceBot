@@ -174,13 +174,6 @@ app.post('/webhook', (req, res) => {
       }
     }
 
-    if (process.env.VAPI_WEBHOOK_SECRET) {
-      const secret = req.header('x-vapi-secret');
-      if (secret !== process.env.VAPI_WEBHOOK_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-    }
-
     let toolCalls = [];
     if (req.body?.message?.toolCalls) {
       toolCalls = req.body.message.toolCalls;
